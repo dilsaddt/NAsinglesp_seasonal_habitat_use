@@ -2,6 +2,9 @@
 # Predictions and visualization
 ###########################################################################
 
+# load(path/to/model/output/model_output.RData)
+# Here our model output name is cc_052021
+
 roedeer <- png::readPNG("phylopic_png/roedeer.png") # need to download a png file first
 
 str(cc_052021$sims.list)
