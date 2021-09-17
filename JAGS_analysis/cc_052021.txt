@@ -1,0 +1,71 @@
+ 
+model {
+
+# Priors
+
+# psi ~ 1
+alphapsi <- logit(psi.mean)                                 # constant, no beta value
+psi.mean ~ dunif(0, 1)
+
+# gamma ~ season
+alphagamma <- logit(gamma.mean)                             # intercept
+gamma.mean ~ dunif(0, 1)
+betagamma ~ dnorm(0,0.01)                                   # betagamma season effect
+                                                        
+# eps ~ 1
+alphaeps <- logit(eps.mean)                                 # intercept
+eps.mean ~ dunif(0, 1)
+
+# p ~ season + distpop
+alphap <- logit(p.mean)                                     # intercept
+p.mean ~ dunif(0, 1)
+for(b in 1:2){                                              # we have 2 betas:
+  betap[b] ~  dnorm(0,0.01)                                 # betap[1] season effect
+}                                                           # betap[2] distpop effect
+  
+# Ecological submodel: intial occupancy as derived parameter
+for (i in 1:nsite){
+  z[i,1] ~ dbern(psi1[i])
+  logit(psi1[i]) <- alphapsi 
+}
+
+# State transitions: colonization and extinction
+# for col and ext
+for (i in 1:nsite){
+  for (s in 2:nprimary){
+    logit(gamma[i,s-1]) <- alphagamma 
+    + betagamma*season[i,s-1]
+    
+    logit(eps[i,s-1]) <- alphaeps
+  }
+}
+
+# for z: true occupancy
+for(i in 1:nsite){
+  for (t in 2:nprimary){
+    
+    z[i,t] ~ dbern((z[i,t-1]*(1-eps[i,t-1])) + ((1-z[i,t-1])*gamma[i,t-1]))
+  }
+}
+
+# Derived parameters
+# Compute population and sample occupancy
+
+n.occ[1] <- sum(z[1:nsite,1])  # Number of occupied sites in sample
+n.prop[1] <- n.occ[1]/nsite
+
+for (t in 2:nprimary){
+  n.occ[t] <- sum(z[1:nsite,t])
+  n.prop[t] <- n.occ[t]/nsite
+}
+
+# Observation model 
+for (i in 1:nobs){
+  logit(p[i]) <- alphap 
+  + betap[1]*season.p[site[i]] 
+  + betap[2]*distpop.p[site[i]]
+
+    y[i] ~ dbern(z[site[i],pocc[i]]*p[i])  # y: observed occupancy
+}
+
+}
