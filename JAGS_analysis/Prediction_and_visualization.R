@@ -67,7 +67,8 @@ ext <- matrix(NA, 2, cc_052021$mcmc.info$n.samples)
 
 ext[1,] <- plogis(cc_052021$sims.list$alphaeps)   # summer = 0
 
-ext[2,] <- plogis(cc_052021$sims.list$alphaeps)   # winter = 1
+ext[2,] <- plogis(cc_052021$sims.list$alphaeps
+                 + cc_052021$sims.list$betaeps*1))   # winter = 1
 
 str(ext)
 
